@@ -1,6 +1,8 @@
 /service
-/alpha
-/beta
+/alpha/*
+!/alpha/.gitkeep
+/beta/*
+!/beta/.gitkeep
 
 /tmp
 nginx/.htpasswd
