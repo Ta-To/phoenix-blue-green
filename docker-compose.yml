@@ -1,0 +1,57 @@
+version: "3.7"
+
+services:
+  # alpha/beta は green blue デプロイ用の2つのアプリケーション
+  alpha:
+    init: true
+    image: elixir:1.12
+    container_name: phoenix_blue_green_alpha
+    shm_size: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "100"
+    volumes:
+      - ./:/srv/
+    command: /srv/alpha/bin/service start
+    depends_on:
+      - db
+
+  beta:
+    init: true
+    image: elixir:1.12
+    container_name: phoenix_blue_green_beta
+    shm_size: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "100"
+    volumes:
+      - ./:/srv/
+    command: /srv/beta/bin/service start
+    depends_on:
+      - db
+
+  web:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+    depends_on:
+      - alpha
+      - beta
+
+  db:
+    image: postgres
+    container_name: phoenix_blue_green_db
+    shm_size: 512m
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=db
+    volumes:
+      - ../postgresql/blue-green:/var/lib/postgresql/data
